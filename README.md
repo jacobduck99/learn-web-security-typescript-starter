@@ -1,4 +1,42 @@
-# Bearly Secure
+# Bearly Secure: Web Security in TypeScript
+
+My work through [Boot.dev](https://www.boot.dev)'s **Learn Web Security in TypeScript** course. The course hands you **Bearly Secure**, a small plushie shop (TypeScript, Express 5, SQLite) that is **deliberately full of security holes**. The job is to find each weakness, understand how it's exploited, and fix it.
+
+> [!WARNING]
+> This app starts out intentionally vulnerable and is still a work in progress. Don't deploy it or copy its patterns into a real application. All credentials and data in it are fake.
+
+## Fixes So Far
+
+| Area | Vulnerability | Fix |
+|---|---|---|
+| Accounts | Emails were compared exactly as typed, so `Bob@Example.com ` and `bob@example.com` could be treated as different accounts (duplicate sign-ups, confusing logins and resets). | `normalizeEmail` lowercases and trims every email before it's stored or looked up ([`src/auth/users.ts`](src/auth/users.ts)). |
+| Browser security | Without `X-Content-Type-Options`, browsers can "sniff" a response and run an uploaded file as a script or stylesheet even when it's served as something else. | Every response sends `X-Content-Type-Options: nosniff` ([`src/app.ts`](src/app.ts)). |
+
+More to come as I work through the course.
+
+## Quick Start
+
+Requires Node.js 24+.
+
+```sh
+npm install
+npm run db:reset   # seed the local SQLite database
+npm start          # http://localhost:3000
+```
+
+## Keeping Up With the Course
+
+This repo was cloned from Boot.dev's starter, which is kept as the `upstream` remote:
+
+```sh
+git pull upstream main
+```
+
+---
+
+# Original Starter README
+
+_Everything below is Boot.dev's original README, kept as a reference for the starting state of the app._
 
 Bearly Secure is the intentionally vulnerable starter app for "Learn Web Security in TypeScript." It's a tiny plushie shop built with TypeScript, Express, and SQLite.
 
