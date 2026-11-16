@@ -24,7 +24,7 @@ export function createPasswordResetToken(
 ): CreatedPasswordResetToken {
     const token = randomBytes(32).toString("hex");
     const tokenHash = hashPasswordResetToken(token);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
     db.prepare(
         `

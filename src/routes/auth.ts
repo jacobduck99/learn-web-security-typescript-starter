@@ -8,7 +8,8 @@ import {
 } from "../auth/passwords.ts";
 import {
     createPasswordResetToken,
-    findPasswordResetToken,
+    validatePasswordResetToken,
+    resetPasswordWithToken,
 } from "../auth/passwordResetTokens.ts";
 import {
     clearSessionCookie,
@@ -437,7 +438,7 @@ export function createAuthRouter(deps: Dependencies): Router {
 
     router.get("/password-reset/:token", (req, res) => {
         const token = String(req.params.token ?? "");
-        const resetToken = findPasswordResetToken(db, token);
+        const resetToken = validatePasswordResetToken(db, token);
 
         if (!resetToken) {
             res.status(404)
@@ -457,7 +458,8 @@ export function createAuthRouter(deps: Dependencies): Router {
     router.post("/password-reset/:token", async (req, res) => {
         const token = String(req.params.token ?? "");
         const password = String(req.body.password ?? "");
-        const resetToken = findPasswordResetToken(db, token);
+        const hashPw = hashPassword(password);
+        const resetToken = validatePasswordResetToken(db, token);
 
         if (!resetToken) {
             res.status(404)
@@ -503,7 +505,7 @@ export function createAuthRouter(deps: Dependencies): Router {
             return;
         }
 
-        const passwordHash = await hashPassword(password);
+        resetPasswordWithToken(db, token, hashPw);
         const passwordResetSucceeded = true;
         if (!passwordResetSucceeded) {
             res.status(404)
@@ -516,8 +518,6 @@ export function createAuthRouter(deps: Dependencies): Router {
                 );
             return;
         }
-
-        await updateUserPassword(db, user.id, passwordHash);
 
         res.type("html").send(renderPasswordResetCompletePage(user.email));
     });
