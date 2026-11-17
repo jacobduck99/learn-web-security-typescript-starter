@@ -44,6 +44,8 @@ import {
     renderTotpSetupPage,
 } from "../views/account.ts";
 
+import { verifyPassword } from "../auth/passwords.ts";
+
 export function createAccountRouter(deps: Dependencies): Router {
     const { db, keyring } = deps;
     const router = Router();
@@ -172,7 +174,12 @@ export function createAccountRouter(deps: Dependencies): Router {
             return;
         }
         const currentPassword = String(req.body.currentPassword ?? "");
-        if (!currentPassword) {
+        const tryPassword = verifyPassword(
+            currentPassword,
+            current.user.password_hash,
+        );
+
+        if (!tryPassword) {
             res.status(403)
                 .type("html")
                 .send(
@@ -183,6 +190,7 @@ export function createAccountRouter(deps: Dependencies): Router {
                 );
             return;
         }
+
         const email = normalizeEmail(String(req.body.email ?? ""));
         if (!email) {
             res.status(400)
