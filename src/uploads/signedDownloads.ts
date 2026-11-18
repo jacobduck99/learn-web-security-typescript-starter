@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 const SIGNED_DOWNLOAD_TTL_SECONDS = 5 * 60;
 
@@ -28,7 +29,18 @@ export function verifySignedDownload(
         return false;
     }
 
-    return true;
+    const providedBuffer = Buffer.from(signature, "hex");
+
+    const expectedBuffer = Buffer.from(
+        signDownload(_signingKey, _fileId, expires),
+        "hex",
+    );
+
+    if (providedBuffer.length !== expectedBuffer.length) {
+        return false;
+    }
+
+    return timingSafeEqual(providedBuffer, expectedBuffer);
 }
 
 function signDownload(
