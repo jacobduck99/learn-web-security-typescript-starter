@@ -285,7 +285,7 @@ export function createAccountRouter(deps: Dependencies): Router {
     router.get("/account/reviews/:id/edit", (req, res) => {
         const current = requireAuth(db, req, res);
         if (!current) return;
-        const review = requireOwnedReview(db, req, res);
+        const review = requireOwnedReview(db, req, res, current.user.id);
         if (!review) return;
         res.type("html").send(
             renderReviewFormPage(
@@ -308,7 +308,7 @@ export function createAccountRouter(deps: Dependencies): Router {
             );
             return;
         }
-        const review = requireOwnedReview(db, req, res);
+        const review = requireOwnedReview(db, req, res, current.user.id);
         if (!review) return;
         const rating = Number(req.body.rating);
         const body = parseReviewBody(req.body.body);
@@ -346,7 +346,7 @@ export function createAccountRouter(deps: Dependencies): Router {
             );
             return;
         }
-        const review = requireOwnedReview(db, req, res);
+        const review = requireOwnedReview(db, req, res, current.user.id);
         if (!review) return;
         deleteReview(db, review.id);
         res.redirect("/account/reviews");
