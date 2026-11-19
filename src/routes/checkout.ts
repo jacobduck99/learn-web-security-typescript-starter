@@ -79,6 +79,16 @@ export function createCheckoutRouter(deps: Dependencies): Router {
             return;
         }
 
+        if (current.session.csrf_token !== req.body?.csrfToken) {
+            sendErrorPage(
+                res,
+                403,
+                "Forbidden",
+                "Request did not come from the app.",
+            );
+            return;
+        }
+
         let items = listCartItems(db, current.user.id);
         if (items.length === 0) {
             res.redirect("/cart");
