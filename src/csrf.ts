@@ -1,19 +1,48 @@
 import type { RequestHandler } from "express";
 import { sendErrorPage } from "./errors.ts";
 
-export function validateRequestOrigin(_appOrigin: string): RequestHandler {
-    return (_req, _res, next) => {
-        const origin = _req.get("Origin");
-        if (origin !== _appOrigin) {
-            sendErrorPage(
-                _res,
-                403,
-                "Forbidden",
-                "request did not come from the app.",
-            );
+export function validateRequestOrigin(appOrigin: string): RequestHandler {
+    return (req, res, next) => {
+        if (req.method !== "POST") {
+            next();
+            return;
         }
 
-        next();
+        const origin = req.get("Origin");
+        if (origin) {
+            if (origin !== appOrigin) {
+                sendErrorPage(
+                    res,
+                    403,
+                    "Forbidden",
+                    "Request did not come from the app.",
+                );
+                return;
+            }
+            next();
+            return;
+        }
+
+        try {
+            const referer = req.get("Referer");
+            if (!referer || new URL(referer).origin !== appOrigin) {
+                sendErrorPage(
+                    res,
+                    403,
+                    "Forbidden",
+                    "Request did not come from the app.",
+                );
+                return;
+            }
+            next();
+        } catch {
+            sendErrorPage(
+                res,
+                403,
+                "Forbidden",
+                "Request did not come from the app.",
+            );
+        }
     };
 }
 
