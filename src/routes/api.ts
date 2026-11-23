@@ -9,6 +9,40 @@ import {
 } from "../orders/index.ts";
 import { findApiKey } from "../auth/apiKeys.ts";
 import { listAllProducts } from "../products.ts";
+import type { Product } from "../products.ts";
+import type { Order } from "../orders/index.ts";
+
+type ProductResponse = {
+    id: number;
+    name: string;
+    description: string;
+    image_path: string;
+    price_cents: number;
+};
+
+type OrderResponse = {
+    id: number;
+    status: Order["status"];
+    total_cents: number;
+    created_at: string;
+};
+
+type OrderItemResponse = {
+    product_id: number;
+    product_name: string;
+    quantity: number;
+    price_cents: number;
+};
+
+export function toProductReponse(product: Product): ProductResponse {
+    return {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        image_path: product.image_path,
+        price_cents: product.price_cents,
+    };
+}
 
 export function createApiRouter(deps: Dependencies): Router {
     const { db } = deps;
