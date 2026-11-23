@@ -10,7 +10,7 @@ import {
 import { findApiKey } from "../auth/apiKeys.ts";
 import { listAllProducts } from "../products.ts";
 import type { Product } from "../products.ts";
-import type { Order } from "../orders/index.ts";
+import type { Order, OrderItem } from "../orders/index.ts";
 
 type ProductResponse = {
     id: number;
@@ -34,13 +34,22 @@ type OrderItemResponse = {
     price_cents: number;
 };
 
-export function toProductReponse(product: Product): ProductResponse {
+function toProductReponse(product: Product): ProductResponse {
     return {
         id: product.id,
         name: product.name,
         description: product.description,
         image_path: product.image_path,
         price_cents: product.price_cents,
+    };
+}
+
+function toOrderResponse(order: Order): OrderResponse {
+    return {
+        id: order.id,
+        status: order.status,
+        total_cents: order.total_cents,
+        created_at: order.created_at,
     };
 }
 
