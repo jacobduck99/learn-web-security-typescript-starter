@@ -53,6 +53,15 @@ function toOrderResponse(order: Order): OrderResponse {
     };
 }
 
+function toOrderItemResponse(order: OrderItem): OrderItemResponse {
+    return {
+        product_id: order.product_id,
+        product_name: order.product_name,
+        quantity: order.quantity,
+        price_cents: order.price_cents,
+    };
+}
+
 export function createApiRouter(deps: Dependencies): Router {
     const { db } = deps;
     const router = Router();
