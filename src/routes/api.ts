@@ -8,10 +8,9 @@ import {
     listOrdersForUser,
 } from "../orders/index.ts";
 import { findApiKey } from "../auth/apiKeys.ts";
-import { listAllProducts } from "../products.ts";
+import { listProducts } from "../products.ts";
 import type { Product } from "../products.ts";
 import type { Order, OrderItem } from "../orders/index.ts";
-import { throwDeprecation } from "process";
 
 type ProductResponse = {
     id: number;
@@ -99,11 +98,14 @@ export function createApiRouter(deps: Dependencies): Router {
 
         const orderItems = listOrderItems(db, order.id);
 
-        res.json({ order, items: orderItems.map(toOrderItemResponse) });
+        res.json({
+            order: toOrderResponse(order),
+            items: orderItems.map(toOrderItemResponse),
+        });
     });
 
     router.get("/api/products", (_req, res) => {
-        const products = listAllProducts(db);
+        const products = listProducts(db);
         res.json({ products: products.map(toProductReponse) });
     });
 
