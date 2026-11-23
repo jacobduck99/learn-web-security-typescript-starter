@@ -1,19 +1,40 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+// type for map two keys
 type LogFields = Record<string, unknown>;
 
+// making file path data/bearly-secure.log
 const logPath = join(process.cwd(), "data", "bearly-secure.log");
 
-export function logEvent(eventName: string, fields: LogFields = {}): void {
-  mkdirSync(dirname(logPath), { recursive: true });
+const REDACTED_KEYS = new Set([
+    "sessionId",
+    "resetToken",
+    "resetLink",
+    "secret",
+    "adminNotes",
+    "storagePath",
+]);
 
-  appendFileSync(
-    logPath,
-    `${JSON.stringify({
-      timestamp: new Date().toISOString(),
-      event: eventName,
-      ...fields,
-    })}\n`,
-  );
+export function logEvent(eventName: string, fields: LogFields = {}): void {
+    mkdirSync(dirname(logPath), { recursive: true });
+
+    appendFileSync(
+        logPath,
+        `${JSON.stringify({
+            timestamp: new Date().toISOString(),
+            event: eventName,
+            ...fields,
+            ...redact(fields),
+        })}\n`,
+    );
+}
+
+function redact(fields: LogFields): LogFields {
+    return Object.fromEntries(
+        Object.entries(fields).map(([key, value]) => [
+            key,
+            REDACTED_KEYS.has(key) ? "[REDACTED]" : value,
+        ]),
+    );
 }
