@@ -21,21 +21,47 @@ import { createStorefrontRouter } from "./routes/storefront.ts";
 import { createSupportRouter } from "./routes/support.ts";
 import { migrateSensitiveDataAtRest } from "./storage/migrations.ts";
 import cors from "cors";
+import helmet from "helmet";
+import type { IncomingMessage, ServerResponse } from "node:http";
+
+const CROSS_ORIGIN_ASSETS = new Set([
+    "/shipping-widget.css",
+    "/shipping-widget.js",
+]);
 
 export function createApp(deps: Dependencies): express.Express {
     migrateSensitiveDataAtRest(deps.db, deps.keyring);
     const app = express();
 
     app.use((_req, res, next) => {
-        const cspNonce = randomBytes(16).toString("base64");
-        res.locals.cspNonce = cspNonce;
-        res.set("X-Content-Type-Options", "nosniff");
-        res.setHeader(
-            "Content-Security-Policy",
-            `default-src 'self'; script-src 'self' 'nonce-${cspNonce}'; style-src 'self'; img-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'`,
-        );
-        res.setHeader("X-Frame-Options", "SAMEORIGIN");
-        res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+        res.locals.cspNonce = randomBytes(16).toString("base64");
+        next();
+    });
+
+    app.use(
+        helmet({
+            contentSecurityPolicy: {
+                directives: {
+                    scriptSrc: [
+                        "'self'",
+                        (_req: IncomingMessage, res: ServerResponse) =>
+                            `'nonce-${(res as express.Response).locals.cspNonce}'`,
+                    ],
+                    styleSrc: ["'self'"],
+                    frameSrc: ["'self'"],
+                    upgradeInsecureRequests: null,
+                },
+            },
+            referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+            xFrameOptions: { action: "sameorigin" },
+            strictTransportSecurity: false,
+        }),
+    );
+
+    app.use((req, res, next) => {
+        if (CROSS_ORIGIN_ASSETS.has(req.path)) {
+            res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        }
         next();
     });
 
