@@ -1,8 +1,9 @@
-import { randomBytes } from "node:crypto";
+import { Buffer } from "node:buffer";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { openDatabase } from "./db/index.ts";
 import { loadOptionalKeyring, type Keyring } from "./storage/keyring.ts";
+import { buffer } from "node:stream/consumers";
 
 export type Dependencies = {
     appOrigin: string;
@@ -18,12 +19,20 @@ export type Dependencies = {
     pawPalApiKey: string;
 };
 
-export function requireEnv(name: string): string {
-    const value = process.env[name];
+function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
+    const value = env[name];
     if (!value) {
         throw new Error(`Missing required environment variable: ${name}`);
     }
     return value;
+}
+
+function getStartUpKey(env: NodeJS.ProcessEnv): Buffer {
+    const key = requireEnv(env, "DOWNLOAD_SIGNING_KEY");
+    if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+        throw new Error("key not equal to 64 chars");
+    }
+    return Buffer.from(key, "hex");
 }
 
 function parseNonNegativeInteger(value: string, name: string): number {
@@ -64,9 +73,9 @@ export function initDependencies(
         maxRequestBodyBytes: 32 * 1024,
         maxUploadBytes: 1024 * 1024,
         maxPublicProductResults: 50,
-        downloadSigningKey: randomBytes(32),
+        downloadSigningKey: getStartUpKey(env),
         keyring: loadOptionalKeyring(env),
-        pawPalApiKey: requireEnv("PAWPAL_API_KEY"),
+        pawPalApiKey: requireEnv(env, "PAWPAL_API_KEY"),
     };
 
     return { ...values, db: openDatabase(values.databasePath) };
