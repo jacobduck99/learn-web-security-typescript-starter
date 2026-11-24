@@ -120,7 +120,10 @@ export function encryptStringWithKeyring(
     value: string,
     _keyring: Keyring | undefined,
 ): string {
-    return value;
+    const buff = Buffer.from(value);
+    const encrypt = encryptWithKeyring(buff, _keyring);
+    const serialized = serializeEncryptedPayload(encrypt);
+    return serialized.toString();
 }
 
 export function decryptStringWithKeyring(
