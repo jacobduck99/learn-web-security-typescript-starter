@@ -118,19 +118,22 @@ export function requireKeyring(keyring: Keyring | undefined): Keyring {
 
 export function encryptStringWithKeyring(
     value: string,
-    _keyring: Keyring | undefined,
+    keyring: Keyring | undefined,
 ): string {
     const buff = Buffer.from(value);
-    const encrypt = encryptWithKeyring(buff, _keyring);
+    const encrypt = encryptWithKeyring(buff, keyring);
     const serialized = serializeEncryptedPayload(encrypt);
     return serialized.toString();
 }
 
 export function decryptStringWithKeyring(
     value: string,
-    _keyring: Keyring | undefined,
+    keyring: Keyring | undefined,
 ): string {
-    return value;
+    const buff = Buffer.from(value);
+    const deserialize = deserializeEncryptedPayload(buff);
+    const plaintext = decryptWithKeyring(deserialize, keyring);
+    return plaintext.toString();
 }
 
 export function serializeEncryptedPayload(
