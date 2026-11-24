@@ -316,7 +316,7 @@ export function createAuthRouter(deps: Dependencies): Router {
 
         setSessionCookie(res, session);
         clearTotpLoginChallengeCookie(res);
-        res.redirect(safeReturnTo(requestedReturnTo));
+        res.redirect(safeReturnTo(challenge.return_to));
     });
 
     router.post("/signup", async (req, res) => {
