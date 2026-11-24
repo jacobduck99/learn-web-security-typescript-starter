@@ -47,6 +47,19 @@ export function encryptWithKeyring(
     };
 }
 
+export function decryptWithKeyring(
+    payload: VersionedEncryptedPayload,
+    keyring: Keyring | undefined,
+): Buffer {
+    const checkedKey = requireKeyring(keyring);
+    const decryptionKey = checkedKey.keys.get(payload.keyVersion);
+    if (!decryptionKey) {
+        throw new Error("missing key");
+    }
+    const plaintext = decrypt(payload, decryptionKey);
+    return plaintext;
+}
+
 export function loadOptionalKeyring(
     env: NodeJS.ProcessEnv = process.env,
 ): Keyring | undefined {
