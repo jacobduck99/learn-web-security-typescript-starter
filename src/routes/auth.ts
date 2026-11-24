@@ -85,7 +85,7 @@ export function createAuthRouter(deps: Dependencies): Router {
             req.query.verification === "restart"
                 ? VERIFICATION_RESTART_MESSAGE
                 : undefined;
-        res.type("html").send(renderLoginPage(error, returnTo));
+        res.type("html").send(renderLoginPage(error, safeReturnTo(returnTo)));
     });
 
     router.get("/login/totp", (req, res) => {
@@ -240,7 +240,7 @@ export function createAuthRouter(deps: Dependencies): Router {
             clearTotpLoginChallengeCookie(res);
         }
 
-        res.redirect(returnTo);
+        res.redirect(safeReturnTo(returnTo));
     });
 
     router.post("/login/totp/cancel", (req, res) => {
@@ -316,7 +316,7 @@ export function createAuthRouter(deps: Dependencies): Router {
 
         setSessionCookie(res, session);
         clearTotpLoginChallengeCookie(res);
-        res.redirect(challenge.return_to);
+        res.redirect(safeReturnTo(requestedReturnTo));
     });
 
     router.post("/signup", async (req, res) => {
@@ -521,8 +521,9 @@ export function createAuthRouter(deps: Dependencies): Router {
     function verificationRestartLoginPath(returnTo: unknown = "/"): string {
         const params = new URLSearchParams({ verification: "restart" });
         const returnPath = String(returnTo);
-        if (returnPath !== "/") {
-            params.set("returnTo", returnPath);
+        const returnPath2 = safeReturnTo(returnPath);
+        if (returnPath2 !== "/") {
+            params.set("returnTo", returnPath2);
         }
         return `/login?${params}`;
     }
