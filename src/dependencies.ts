@@ -3,7 +3,6 @@ import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { openDatabase } from "./db/index.ts";
 import { loadOptionalKeyring, type Keyring } from "./storage/keyring.ts";
-import { buffer } from "node:stream/consumers";
 
 export type Dependencies = {
     appOrigin: string;
@@ -17,6 +16,7 @@ export type Dependencies = {
     keyring: Keyring | undefined;
     db: DatabaseSync;
     pawPalApiKey: string;
+    trustedProxyHops: number;
 };
 
 function requireEnv(env: NodeJS.ProcessEnv, name: string): string {
@@ -76,6 +76,10 @@ export function initDependencies(
         downloadSigningKey: getStartUpKey(env),
         keyring: loadOptionalKeyring(env),
         pawPalApiKey: requireEnv(env, "PAWPAL_API_KEY"),
+        trustedProxyHops: parseNonNegativeInteger(
+            env.TRUST_PROXY_HOPS ?? "0",
+            "TRUST_PROXY_HOPS",
+        ),
     };
 
     return { ...values, db: openDatabase(values.databasePath) };

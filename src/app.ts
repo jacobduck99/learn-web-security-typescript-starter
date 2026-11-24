@@ -32,6 +32,7 @@ const CROSS_ORIGIN_ASSETS = new Set([
 export function createApp(deps: Dependencies): express.Express {
     migrateSensitiveDataAtRest(deps.db, deps.keyring);
     const app = express();
+    app.set("trust proxy", deps.trustedProxyHops);
 
     app.use((_req, res, next) => {
         res.locals.cspNonce = randomBytes(16).toString("base64");
