@@ -30,12 +30,28 @@ export async function fetchRemoteImagePreview(
     maxBytes: number,
     fetchImpl: typeof fetch = fetch,
 ): Promise<RemoteImagePreviewResult> {
+    const allowedImageUrl = parseAllowedImageUrl(imageUrl);
+    if (allowedImageUrl === undefined) {
+        throw new RemoteImagePreviewError(
+            "Use an HTTPS URL from an allowed image host.",
+        );
+    }
     let response: Response;
     try {
-        response = await fetchImpl(imageUrl, {
+        response = await fetchImpl(allowedImageUrl, {
             signal: AbortSignal.timeout(5_000),
+            redirect: "manual",
         });
+
+        if (response.status >= 300 && response.status <= 399) {
+            throw new RemoteImagePreviewError(
+                "Image URL redirects are not allowed.",
+            );
+        }
     } catch (error) {
+        if (error instanceof RemoteImagePreviewError) {
+            throw error;
+        }
         if (error instanceof DOMException && error.name === "TimeoutError") {
             throw new RemoteImagePreviewError(
                 "The image host did not respond in time.",
@@ -75,8 +91,8 @@ export async function fetchRemoteImagePreview(
     }
 
     return {
-        requestedUrl: imageUrl,
-        finalUrl: response.url,
+        requestedUrl: allowedImageUrl.href,
+        finalUrl: allowedImageUrl.href,
         status: response.status,
         contentType: detectedContentType,
         byteLength: imageBytes.byteLength,
