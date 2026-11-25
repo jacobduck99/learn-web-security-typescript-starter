@@ -55,6 +55,8 @@ import {
     renderTotpLoginPage as renderTotpLoginView,
 } from "../views/auth.ts";
 import { logEvent } from "../logger.ts";
+import { passwordNeedsRehash } from "../auth/passwords.ts";
+import { updateUserPassword } from "../auth/users.ts";
 
 type AuthenticationLogFields = {
     success: boolean;
@@ -176,6 +178,10 @@ export function createAuthRouter(deps: Dependencies): Router {
         }
 
         const challengeToken = getTotpLoginChallengeToken(req.header("cookie"));
+        const checkPassword = passwordNeedsRehash(user.password_hash);
+        if (checkPassword) {
+            await updateUserPassword(db, user.id, password);
+        }
         abandonTotpLoginChallenge(db, req.header("cookie"));
         clearTotpSecret(db, user.id);
         const session = createSession(db, user.id);
@@ -216,6 +222,10 @@ export function createAuthRouter(deps: Dependencies): Router {
 
         const challengeToken = getTotpLoginChallengeToken(req.header("cookie"));
         abandonTotpLoginChallenge(db, req.header("cookie"));
+        const checkPassword = passwordNeedsRehash(user.password_hash);
+        if (checkPassword) {
+            await updateUserPassword(db, user.id, password);
+        }
 
         if (user.has_totp) {
             const challenge = createTotpLoginChallenge(db, user.id, returnTo);
