@@ -44,3 +44,20 @@ export async function verifyPassword(
 
     return false;
 }
+
+const PASSWORD_HASH_OPTIONS = {
+    type: argon2.argon2id,
+    memoryCost: 19 * 1024,
+    timeCost: 2,
+    parallelism: 1,
+} as const;
+
+export function passwordNeedsRehash(passwordHash: string): boolean {
+    if (LEGACY_SHA256_PATTERN.test(passwordHash)) {
+        return true;
+    }
+    if (argon2.needsRehash(passwordHash, PASSWORD_HASH_OPTIONS)) {
+        return true;
+    }
+    return false;
+}
