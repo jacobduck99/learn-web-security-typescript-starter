@@ -9,8 +9,8 @@ ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
-COPY src/ ./src/
-COPY public/ ./public/
+COPY src/ ./src
+COPY public/ ./public
 
 RUN mkdir -p data/uploads data/bulk-tax-documents \
  && chown -R node:node data
