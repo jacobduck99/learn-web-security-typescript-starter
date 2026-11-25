@@ -7,5 +7,4 @@ tmp/
 **/*.log
 data/*.sqlite*
 data/uploads/*
-!data/uploads/mystery-shack-tax-exemption.pdf
 data/bulk-tax-documents/*
