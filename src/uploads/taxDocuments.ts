@@ -2,12 +2,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import {
-    Keyring,
     decryptWithKeyring,
     deserializeEncryptedPayload,
     encryptWithKeyring,
     serializeEncryptedPayload,
 } from "../storage/keyring.ts";
+import type { Keyring } from "../storage/keyring.ts";
 
 const uploadDirectory = join(process.cwd(), "data", "uploads");
 
@@ -81,7 +81,11 @@ export function storeTaxDocument(
 
 export function readTaxDocument(
     storagePath: string,
-    _keyring: Keyring | undefined,
+    keyring: Keyring | undefined,
 ): Buffer {
-    return readFileSync(storagePath);
+    const data = readFileSync(storagePath, "utf8");
+    const buff = Buffer.from(data);
+    const deserialize = deserializeEncryptedPayload(buff);
+    const decryptKey = decryptWithKeyring(deserialize, keyring);
+    return decryptKey;
 }
