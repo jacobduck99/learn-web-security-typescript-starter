@@ -454,7 +454,6 @@ export function createAuthRouter(deps: Dependencies): Router {
     router.post("/password-reset/:token", async (req, res) => {
         const token = String(req.params.token ?? "");
         const password = String(req.body.password ?? "");
-        const hashPw = hashPassword(password);
         const resetToken = validatePasswordResetToken(db, token);
 
         if (!resetToken) {
@@ -501,8 +500,12 @@ export function createAuthRouter(deps: Dependencies): Router {
             return;
         }
 
-        resetPasswordWithToken(db, token, hashPw);
-        const passwordResetSucceeded = true;
+        const passwordHash = await hashPassword(password);
+        const passwordResetSucceeded = resetPasswordWithToken(
+            db,
+            token,
+            passwordHash,
+        );
         if (!passwordResetSucceeded) {
             res.status(404)
                 .type("html")

@@ -161,7 +161,7 @@ export function createAccountRouter(deps: Dependencies): Router {
         res.redirect("/account");
     });
 
-    router.post("/account/email", (req, res) => {
+    router.post("/account/email", async (req, res) => {
         const current = requireAuth(db, req, res);
         if (!current) return;
         if (!csrfTokensMatch(current.session.csrf_token, req.body?.csrfToken)) {
@@ -174,7 +174,7 @@ export function createAccountRouter(deps: Dependencies): Router {
             return;
         }
         const currentPassword = String(req.body.currentPassword ?? "");
-        const tryPassword = verifyPassword(
+        const tryPassword = await verifyPassword(
             currentPassword,
             current.user.password_hash,
         );
